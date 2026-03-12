@@ -1,0 +1,10 @@
+[project]
+name = "python-spring26"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "cowsay>=6.1",
+    "python-call-graph>=2.1.6",
+]
