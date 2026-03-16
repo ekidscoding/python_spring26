@@ -1,5 +1,8 @@
+from fantastic.shop import start_shop
+
+
 def main():
-    print("Hello from python-spring26!")
+    start_shop()
 
 
 if __name__ == "__main__":
