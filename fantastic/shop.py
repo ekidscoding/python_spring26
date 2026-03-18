@@ -1,10 +1,13 @@
-from pprint import pprint
+from rich.pretty import pprint
 from collections import defaultdict
 import sys
 from typing import Callable
 
 
 # ===== HELPERS =====
+
+def view_list(items_list):
+    pprint(items_list, expand_all=True)
 
 def get_available_actions(actions_map):
     return list(actions_map.keys())
@@ -21,17 +24,17 @@ def get_choice(actions_map):
     try:
         idx = int(choice)
     except ValueError:
-        print("Enter a NUMBER to the left of your choice")
+        print("Введіть ЧИСЛО ліворуч від вибору")
         return None
     if not 0 < idx <= len(actions_map):
-        print("Incorrect number")
+        print("Невірне число")
         return None
     return idx
 
 # ===== USER =====
 
 user = {
-    "name": "Celebrity",
+    "name": "Зірка",
     "cart": defaultdict(int),
     "money_left": 10000
 }
@@ -41,7 +44,7 @@ def print_user_info(user):
         Name = {user["name"]}
         Money Left {user["money_left"]}
     """)
-    print("Your cart has:")
+    print("Ваш кошик містить:")
     for k, v in user["cart"].items():
         print(f"{k} ({v} шт.)")
 
@@ -75,7 +78,7 @@ def buy(id, user):
     item = inventory[id]
 
     if item["price"] > user["money_left"]:
-        print("You don't have enough money")
+        print("Недостатньо коштів")
     else:
         item_name = item["name"]
         user["cart"][item_name] += 1
@@ -88,6 +91,7 @@ def inform():
 
 goods_actions = {
     "Придбати": buy,
+    "Список": view_list,
     "Повідомити про наявність": inform,
     "🔙 Назад": print
 }
@@ -101,23 +105,20 @@ def goods_menu(context, goods, can_buy):
         if idx is None:
             continue
         
-        if idx == 3:
-            return
-
         if idx == 1:
             if not can_buy:
                 inform()
                 return
             keys = get_available_actions(goods)
             while True:
-                pprint(goods, indent=4)
+                view_list(goods)
                 choice = input("Оберіть товар ")
                 if choice.lower() in ['x', 'q']:
                     sys.exit()
                 try:
                     id = int(choice)
                 except ValueError:
-                    print("Enter a NUMBER to the left of your choice")
+                    print("Введіть ЧИСЛО ліворуч від вибору")
                     continue
                 if id in keys:
                     buy(id, user)
@@ -126,7 +127,11 @@ def goods_menu(context, goods, can_buy):
                     print(f"Товара з артикулом {id} не знайдено.")
             
         if idx == 2:
+            view_list(goods)
+        if idx == 3:
             inform()
+        if idx == 4:
+            return
 
 # ===== BOOKS =====
 
@@ -136,11 +141,11 @@ books = {
 }
 
 def add_record(book):
-    text = input("Введіть скаргу.пропозицію")
+    text = input("Введіть скаргу/пропозицію")
     book.append(text)
 
 def view_book(book):
-    print(book)
+    view_list(book)
 
 books_actions = {
     "Додати Запис": add_record,
@@ -155,14 +160,13 @@ def books_menu(context, book):
 
         if idx is None:
             continue
-        
-        if idx == 3:
-            return
 
         if idx == 1:
             add_record(book)
         if idx == 2:
             view_book(book)
+        if idx == 3:
+            return
 
 def get_book(type):
     if type not in books:
