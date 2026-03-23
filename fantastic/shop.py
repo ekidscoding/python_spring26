@@ -6,6 +6,9 @@ from typing import Callable
 
 # ===== HELPERS =====
 
+def print_line(num):
+    print("~"*num)
+
 def view_list(items_list):
     pprint(items_list, expand_all=True)
 
@@ -13,7 +16,7 @@ def get_available_actions(actions_map):
     return list(actions_map.keys())
 
 def print_menu(menu_items):
-    print( "~"*30)
+    print_line(30)
     for number, action in enumerate(menu_items, 1):
         print(f"{number}. {action}")
 
@@ -41,8 +44,8 @@ user = {
 
 def print_user_info(user):
     print(f"""
-        Name = {user["name"]}
-        Money Left {user["money_left"]}
+        Ім'я покупця        = {user["name"]}
+        Грошей в гаманці    = {user["money_left"]}
     """)
     print("Ваш кошик містить:")
     for k, v in user["cart"].items():
@@ -187,7 +190,8 @@ actions: dict[str, Callable] = {
 # ========== MAIN ===========
 
 def start_shop():
-    print("Hello from Fantastic Shop!")
+    print("Привіт. Вітаємо в нашій Фантастичній Крамниці!")
+    print_line(46)
     main_loop()
 
 def main_loop():
