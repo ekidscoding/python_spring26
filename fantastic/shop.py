@@ -1,13 +1,18 @@
 from rich.pretty import pprint
+# from pprint import pprint
 from collections import defaultdict
 import sys
-from typing import Callable
+from typing import Callable, Optional
 
 
 # ===== HELPERS =====
 
-def print_line(num):
-    print("~"*num)
+def print_line(num, char="="):
+    print(char*num)
+
+def print_error(message):
+    print_line(10, '!')
+    print(message)
 
 def view_list(items_list):
     pprint(items_list, expand_all=True)
@@ -20,17 +25,17 @@ def print_menu(menu_items):
     for number, action in enumerate(menu_items, 1):
         print(f"{number}. {action}")
 
-def get_choice(actions_map):
+def get_choice(actions_map: list) -> Optional[int]:
     choice = input("Оберіть номер дії: ")
     if choice.lower() in ['x', 'q']:
         sys.exit()
     try:
         idx = int(choice)
     except ValueError:
-        print("Введіть ЧИСЛО ліворуч від вибору")
+        print_error("Введіть ЧИСЛО ліворуч від вибору")
         return None
     if not 0 < idx <= len(actions_map):
-        print("Невірне число")
+        print_error("Невірне число")
         return None
     return idx
 
