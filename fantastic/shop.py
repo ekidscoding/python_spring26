@@ -25,7 +25,7 @@ def log_name(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         # Print the original function's name
-        console.print(f"🔳 {func.__name__}", style="dim")
+        # console.print(f"🔳 {func.__name__}", style="dim")
         return func(*args, **kwargs)
     return wrapper
 
@@ -89,8 +89,8 @@ def int_keys(obj):
 
 @log_name
 def read_json_file(file_path) -> list|dict:
-    with file_path.open(mode="r", encoding="utf-8") as file:
-        data = json.load(file, object_hook=int_keys)
+    with file_path.open(mode="r", encoding="utf-8") as json_file:
+        data = json.load(json_file, object_hook=int_keys)
     
     return data
 
@@ -128,7 +128,7 @@ user["cart"] = defaultdict(int)
 @log_name
 def print_user_info(user):
     console.print(f"""
-        Ім'я покупця        = {user["name"]}
+        Ім'я покупця        = {user.get("name", "Guest")}
         Грошей в гаманці    = {user["money_left"]}
     """, style="info")
     console.print("Ваш кошик містить:", style="success")
@@ -151,7 +151,9 @@ def get_inventory_data() -> dict[int, dict]:
         exit_error()
 
     data = read_json_file(file_path)
-    result = data if type(data) is dict else {}    
+    result = data if type(data) is dict else {}
+    # if not data:
+    #     data = {}
     return result
 
 inventory = get_inventory_data()
@@ -286,7 +288,16 @@ actions: dict[str, Callable] = {
 
 @log_name
 def start_shop():
-    console.print(f"Привіт [green]{user.get("name", "Guest")}[/]. Вітаємо в нашій Фантастичній Крамниці!", style="info")
+    
+    # try:
+    #     user_name = user["name"]
+    # except KeyError:
+    #     user_name = "Guest"
+
+    user_name = user.get("name", "Guest")
+
+    console.print(f"""Привіт [green]{user_name}[/].
+            Вітаємо в нашій Фантастичній Крамниці!""", style="info")
     print_line(46)
     main_loop()
 
