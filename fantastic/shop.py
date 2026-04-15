@@ -7,6 +7,9 @@ from pathlib import Path
 from rich.console import Console
 from rich.theme import Theme
 from functools import wraps
+import tempfile
+import pendulum
+from pendulum import DateTime
 
 # ===== GLOBALS =====
 INVENTORY_FILE_NAME = 'inventory.json'
@@ -25,7 +28,7 @@ def log_name(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         # Print the original function's name
-        # console.print(f"🔳 {func.__name__}", style="dim")
+        console.print(f"🔳 {func.__name__}", style="dim")
         return func(*args, **kwargs)
     return wrapper
 
@@ -46,7 +49,8 @@ def exit_error():
 
 @log_name
 def view_list(items_list):
-    pprint(items_list, expand_all=True)
+    for item in items_list:
+        pprint(item, expand_all=True)
 
 @log_name
 def get_available_actions(actions_map):
@@ -88,11 +92,57 @@ def int_keys(obj):
     return {int(k) if k.isdigit() else k: v for k, v in obj.items()}
 
 @log_name
+def default(obj):
+    if type(obj) is DateTime:
+        return obj.to_datetime_string()
+    return obj
+
+@log_name
 def read_json_file(file_path) -> list|dict:
     with file_path.open(mode="r", encoding="utf-8") as json_file:
         data = json.load(json_file, object_hook=int_keys)
     
     return data
+
+@log_name
+def create_file(file_path) -> Path:
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.touch(exist_ok=False)
+        console.print(f"Файл Створено: {file_path}", style="dim")
+        return file_path
+    except FileExistsError:
+        console.print(f"Помилка: '{file_path}' вже існує.", style="error")
+        
+    except PermissionError:
+        console.print(f"Помилка: Недостатньо прав для створення '{file_path}'.", style="error")
+
+    except Exception as e:
+        console.print(f"Неочікувана помилка: {e}", style="error")
+
+    file_name_only = file_path.name
+
+    temp_path = Path(tempfile.gettempdir())
+
+    new_file = temp_path / file_name_only
+
+    new_file.touch(exist_ok=True)
+
+    return new_file
+
+@log_name
+def read_json_lines(file_path) -> list:
+    if file_path.suffix != '.jsonl':
+        console.print("Must use '.jsonl' file extension got '{file_path.suffix}'", style="error")
+        return []
+    with file_path.open(encoding='utf-8') as f:
+        data = [json.loads(line) for line in f if line.strip()]
+    return data
+
+@log_name
+def write_json_line(file_path, data: list|dict):
+    with file_path.open("a", encoding="utf-8") as f:
+         f.write(json.dumps(data, ensure_ascii=False, default=default) + "\n")
 
 # ===== USER =====
 @log_name
@@ -228,20 +278,43 @@ def goods_menu(context, goods, can_buy):
             return
 
 # ===== BOOKS =====
+@log_name
+def get_book_data(book_type) -> dict:
+    if book_type == "complaints":
+        file_name = "compl.jsonl"
+    elif book_type == "proposals":
+        file_name = "prop.jsonl"
+    else:
+        raise ValueError("Unsupported")
+    file_path = Path(__file__).parent / file_name
+    book = {}
+    book["type"] = book_type
+    if file_path.exists():
+        book["file_path"] = file_path
+        book["content"] = read_json_lines(file_path)
+    else:
+        book["file_path"] = create_file(file_path)
+        book["content"] = []
+    return book
 
 books = {
-    "complaints": [],
-    "proposals": []
+    "complaints": get_book_data("complaints"),
+    "proposals": get_book_data("proposals")
 }
 
 @log_name
 def add_record(book):
     text = input("Введіть скаргу/пропозицію: ")
-    book.append(text)
+    message = {}
+    message["author"] = user.get("name", "Guest")
+    message["text"] = text
+    message["date"] = pendulum.now("Europe/Kyiv")
+    book["content"].append(message)
+    write_json_line(book["file_path"], message)
 
 @log_name
 def view_book(book):
-    view_list(book)
+    view_list(book["content"])
 
 books_actions = {
     "Додати Запис": add_record,
