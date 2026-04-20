@@ -28,7 +28,7 @@ def log_name(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         # Print the original function's name
-        console.print(f"🔳 {func.__name__}", style="dim")
+        # console.print(f"🔳 {func.__name__}", style="dim")
         return func(*args, **kwargs)
     return wrapper
 
@@ -142,7 +142,9 @@ def read_json_lines(file_path) -> list:
 @log_name
 def write_json_line(file_path, data: list|dict):
     with file_path.open("a", encoding="utf-8") as f:
-         f.write(json.dumps(data, ensure_ascii=False, default=default) + "\n")
+         f.write(json.dumps(data,
+                            ensure_ascii=False,
+                            default=default) + "\n")
 
 # ===== USER =====
 @log_name
@@ -306,7 +308,7 @@ books = {
 def add_record(book):
     text = input("Введіть скаргу/пропозицію: ")
     message = {}
-    message["author"] = user.get("name", "Guest")
+    message["author"] = user.get("name", "Anonymous")
     message["text"] = text
     message["date"] = pendulum.now("Europe/Kyiv")
     book["content"].append(message)
